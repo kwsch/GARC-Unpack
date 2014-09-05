@@ -24,7 +24,7 @@ namespace Pack
             string path = files[0]; // open first D&D
             textBox1.Text = path;
 
-            if (chk_auto.Checked)
+            if (CHK_AutoExtract.Checked)
             {
                 B_Go_Click(sender, (EventArgs)e);
             }
@@ -49,6 +49,7 @@ namespace Pack
         }
         private void B_Go_Click(object sender, EventArgs e)
         {
+            // Continue only if a string path is loaded.
             if (textBox1.Text.Length < 1) return;
 
             // Fetch file extension (first 4 bytes) to check if it is a GARC
@@ -75,7 +76,7 @@ namespace Pack
             ProgressInit(garc.otaf.nFiles);
             if (garc.otaf.nFiles > 50)
             {
-                cNoprint.Checked = true;
+                CHK_NoPrint.Checked = true;
             }
 
             // Get file path infos for exporting
@@ -102,7 +103,7 @@ namespace Pack
                 try
                 {
                     newext = TrimFromZero(new string(br.ReadChars(4)));
-                    if ((System.Text.RegularExpressions.Regex.IsMatch(newext, @"^[a-zA-Z0-9]+$")) && (!chk_binonly.Checked))
+                    if ((System.Text.RegularExpressions.Regex.IsMatch(newext, @"^[a-zA-Z0-9]+$")) && (!CHK_ForceBIN.Checked))
                         ext = newext;
                     else
                     {
@@ -111,27 +112,30 @@ namespace Pack
                 }
                 catch { newext = null; }
                 
-                string fileout = basepath + "\\" + i + "." + ext;
+                // Set File Name
+                string filename = i.ToString("D" + Math.Ceiling(Math.Log10(garc.otaf.nFiles)));
+                string fileout = basepath + "\\" + filename + "." + ext;
                 BinaryWriter bw = new BinaryWriter(File.OpenWrite(fileout));
                 
+                // Write out the data for the file
                 br.BaseStream.Position = garc.btaf.entries[i].start_offset + garc.data_offset;
                 for (int x = 0; x < garc.btaf.entries[i].length; x++)
                 {
                     bw.Write(br.ReadByte());
                 }
-                bw.Flush();
-                bw.Close();
+                bw.Flush(); bw.Close();
                 printout("\r\nWrote to " + fileout);
-                if (compressed)
+
+                // See if decompression should be attempted.
+                if (compressed && !CHK_SkipDecompress.Checked)
                 {
-                    
-                    string decout = path + "\\" + parentName + "_\\" + "dec_" + i;
+                    string decout = path + "\\" + parentName + "_\\" + "dec_" + filename;
                     string result = LZSS.Decompress11LZS(fileout, decout);
 
                     if (result != null)
                     {
                         printout("\r\n" + result);
-                        if (delAfterD.Checked)
+                        if (CHK_delAfterD.Checked)
                         {
                             try { File.Delete(fileout); }
                             catch { }
@@ -146,10 +150,9 @@ namespace Pack
             RTB.Select(RTB.Text.Length - 1, 0);
             RTB.ScrollToCaret();
         }
-
         private void printout(string str)
         {
-            if (cNoprint.Checked) 
+            if (CHK_NoPrint.Checked) 
                 return;
             RTB.Text += str;
             RTB.Select(RTB.Text.Length - 1, 0);
@@ -196,8 +199,8 @@ namespace Pack
     // Class code based off of
     // https://code.google.com/p/tinke/source/browse/trunk/Plugins/Pack/Pack/NARC.cs
     // by pleonex / benito356
-    #region garc destructuring
-    public class  ARC
+    #region GARC Destructuring
+    public class ARC
     {
         public static uint Reverse(uint x)
         {
@@ -276,6 +279,7 @@ namespace Pack
             return garc;
         }
     }
+    #region structs
     public struct GARC
     {
         public char[] id;           // Always GARC = 0x4E415243
@@ -326,6 +330,7 @@ namespace Pack
         public UInt32 data_size;
     }
     #endregion
+    #endregion
 
     // Tinke LZSS Code (now slightly altered)
     // https://code.google.com/p/tinke/source/browse/trunk/Plugins/Compresiones/Compresiones/LZSS.cs
@@ -340,7 +345,7 @@ namespace Pack
 
         const int LZ77_TAG = 0x10, LZSS_TAG = 0x11, RLE_TAG = 0x30, HUFF_TAG = 0x20, NONE_TAG = 0x00;
 
-        #region tag 0x11 LZSS
+        // tag 0x11 LZSS
         public static string Decompress11LZS(string filein, string fileout)
         {
             /*  Data header (32bit)
@@ -371,9 +376,14 @@ namespace Pack
                             Bit 12-23          Disp
                       
              */
+            string errstring = "";
             FileStream fstr = new FileStream(filein, FileMode.Open);
             if (fstr.Length > int.MaxValue)
-                return "Filer larger than 2GB cannot be LZSS-compressed files.";
+            {
+                errstring = "Filer larger than 2GB cannot be LZSS-compressed files.";
+                fstr.Dispose();
+                return errstring;
+            }
             BinaryReader br = new BinaryReader(fstr);
 
             int decomp_size = 0, curr_size = 0;
@@ -388,23 +398,23 @@ namespace Pack
             {
                 br.BaseStream.Seek(0x4, SeekOrigin.Begin);
                 if (br.ReadByte() != LZSS_TAG)
-                    return null;
-                        // String.Format("File {0:s} is not a valid LZSS-11 file", filein);
+                {
+                    errstring = null; goto error;
+                    // String.Format("File {0:s} is not a valid LZSS-11 file", filein);
+                }
             }
             for (i = 0; i < 3; i++)
                 decomp_size += br.ReadByte() << (i * 8);
             if (decomp_size > MAX_OUTSIZE)
             {
-                br.Close();
-                return String.Format("{0:s} will be larger than 0x{1:x} (0x{2:x}) and will not be decompressed.", filein, MAX_OUTSIZE, decomp_size);
+                errstring = String.Format("{0:s} will be larger than 0x{1:x} (0x{2:x}) and will not be decompressed.", filein, MAX_OUTSIZE, decomp_size); goto error;
             }
             else if (decomp_size == 0)
                 for (i = 0; i < 4; i++)
                     decomp_size += br.ReadByte() << (i * 8);
             if (decomp_size > MAX_OUTSIZE << 8)
             {
-                br.Close();
-                return String.Format("{0:s} will be larger than 0x{1:x} (0x{2:x}) and will not be decompressed.", filein, MAX_OUTSIZE, decomp_size);
+                errstring = String.Format("{0:s} will be larger than 0x{1:x} (0x{2:x}) and will not be decompressed.", filein, MAX_OUTSIZE, decomp_size); goto error;
             }
 
             if (showAlways)
@@ -423,7 +433,7 @@ namespace Pack
                     if (flag)
                     {
                         try { b1 = br.ReadByte(); }
-                        catch (EndOfStreamException) { br.Close(); return "Incomplete data 1"; }
+                        catch (EndOfStreamException) { errstring = "Incomplete data 1"; goto error; }
 
                         switch (b1 >> 4)
                         {
@@ -436,13 +446,13 @@ namespace Pack
 
                                 len = b1 << 4;
                                 try { bt = br.ReadByte(); }
-                                catch (EndOfStreamException) { br.Close(); return "Incomplete data 2"; }
+                                catch (EndOfStreamException) { errstring = "Incomplete data 2"; goto error; }
                                 len |= bt >> 4;
                                 len += 0x11;
 
                                 disp = (bt & 0x0F) << 8;
                                 try { b2 = br.ReadByte(); }
-                                catch (EndOfStreamException) { br.Close(); return "Incomplete data 3"; }
+                                catch (EndOfStreamException) { errstring = "Incomplete data 3"; goto error; }
                                 disp |= b2;
                                 break;
                             #endregion
@@ -456,7 +466,7 @@ namespace Pack
                                 // 10 04 92 3F => disp = 0x23F, len = 0x149 + 0x11 = 0x15A
 
                                 try { bt = br.ReadByte(); b2 = br.ReadByte(); b3 = br.ReadByte(); }
-                                catch (EndOfStreamException) { br.Close(); return "Incomplete data 4"; }
+                                catch (EndOfStreamException) { errstring = "Incomplete data 4"; goto error; }
 
                                 len = (b1 & 0xF) << 12; // len = b000
                                 len |= bt << 4; // len = bcd0
@@ -478,17 +488,13 @@ namespace Pack
 
                                 disp = (b1 & 0x0F) << 8;
                                 try { b2 = br.ReadByte(); }
-                                catch (EndOfStreamException) { br.Close(); return "Incomplete data 5"; }
+                                catch (EndOfStreamException) { errstring = "Incomplete data 5"; goto error; }
                                 disp |= b2;
                                 break;
                             #endregion
                         }
 
-                        if (disp > curr_size)
-                        {
-                            br.Close();
-                            return "Cannot go back more than already written";
-                        }
+                        if (disp > curr_size) { errstring = "Cannot go back more than already written"; goto error; }
 
                         cdest = curr_size;
 
@@ -497,8 +503,7 @@ namespace Pack
 
                         if (curr_size > decomp_size)
                         {
-                            br.Close(); 
-                            return String.Format("File {0:s} is not a valid LZ77 file; actual output size > output size in header", filein);
+                            errstring = String.Format("File {0:s} is not a valid LZ77 file; actual output size > output size in header", filein); goto error;
                             //Console.WriteLine(String.Format("File {0:s} is not a valid LZ77 file; actual output size > output size in header; {1:x} > {2:x}.", filein, curr_size, decomp_size));
                             // break;
                         }
@@ -511,7 +516,8 @@ namespace Pack
                         if (curr_size > decomp_size)
                         {
                             br.Close(); 
-                            return String.Format("File {0:s} is not a valid LZ77 file; actual output size > output size in header", filein);
+                            errstring = String.Format("File {0:s} is not a valid LZ77 file; actual output size > output size in header", filein);
+                            goto error;
                             //Console.WriteLine(String.Format("File {0:s} is not a valid LZ77 file; actual output size > output size in header; {1:x} > {2:x}", filein, curr_size, decomp_size));
                             // break;
                         }
@@ -546,7 +552,7 @@ namespace Pack
                 BinaryWriter bw = new BinaryWriter(new FileStream(fn, FileMode.Create));
                 bw.Write(outdata);
                 bw.Flush();
-                bw.Close();
+                bw.Dispose();
             }
             catch
             {
@@ -554,18 +560,21 @@ namespace Pack
                 BinaryWriter bw = new BinaryWriter(new FileStream(fn, FileMode.Create));
                 bw.Write(outdata);
                 bw.Flush();
-                bw.Close();
+                bw.Dispose();
             }
 
-            br.Close();
-            fstr.Close();
+            br.Dispose();
             fstr.Dispose();
             Console.WriteLine("LZSS-11 Decompressed " + filein);
             return String.Format("Decompressed to {0:s}", fn);
+
+        error:
+            {
+                br.Dispose();
+                fstr.Dispose();
+                return errstring;
+            }
         }
-
-
-        #endregion
         public static string TrimFromZero(string input)
         {
             int index = input.IndexOf('\0');

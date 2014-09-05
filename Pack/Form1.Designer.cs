@@ -32,12 +32,13 @@
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.RTB = new System.Windows.Forms.RichTextBox();
             this.B_Go = new System.Windows.Forms.Button();
-            this.chk_binonly = new System.Windows.Forms.CheckBox();
+            this.CHK_ForceBIN = new System.Windows.Forms.CheckBox();
             this.button1 = new System.Windows.Forms.Button();
-            this.chk_auto = new System.Windows.Forms.CheckBox();
-            this.delAfterD = new System.Windows.Forms.CheckBox();
-            this.cNoprint = new System.Windows.Forms.CheckBox();
+            this.CHK_AutoExtract = new System.Windows.Forms.CheckBox();
+            this.CHK_delAfterD = new System.Windows.Forms.CheckBox();
+            this.CHK_NoPrint = new System.Windows.Forms.CheckBox();
             this.pBar1 = new System.Windows.Forms.ProgressBar();
+            this.CHK_SkipDecompress = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // B_Open
@@ -84,61 +85,61 @@
             this.B_Go.UseVisualStyleBackColor = true;
             this.B_Go.Click += new System.EventHandler(this.B_Go_Click);
             // 
-            // chk_binonly
+            // CHK_ForceBIN
             // 
-            this.chk_binonly.AutoSize = true;
-            this.chk_binonly.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.chk_binonly.Location = new System.Drawing.Point(248, 35);
-            this.chk_binonly.Name = "chk_binonly";
-            this.chk_binonly.Size = new System.Drawing.Size(146, 17);
-            this.chk_binonly.TabIndex = 5;
-            this.chk_binonly.Text = "Force .bin Extension Only";
-            this.chk_binonly.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.chk_binonly.UseVisualStyleBackColor = true;
+            this.CHK_ForceBIN.AutoSize = true;
+            this.CHK_ForceBIN.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.CHK_ForceBIN.Location = new System.Drawing.Point(319, 35);
+            this.CHK_ForceBIN.Name = "CHK_ForceBIN";
+            this.CHK_ForceBIN.Size = new System.Drawing.Size(73, 17);
+            this.CHK_ForceBIN.TabIndex = 5;
+            this.CHK_ForceBIN.Text = "Force .bin";
+            this.CHK_ForceBIN.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.CHK_ForceBIN.UseVisualStyleBackColor = true;
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(309, 50);
+            this.button1.Location = new System.Drawing.Point(353, 50);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(85, 20);
+            this.button1.Size = new System.Drawing.Size(41, 20);
             this.button1.TabIndex = 6;
-            this.button1.Text = "Clear Textbox";
+            this.button1.Text = "Clear";
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.clearTextbox);
             // 
-            // chk_auto
+            // CHK_AutoExtract
             // 
-            this.chk_auto.AutoSize = true;
-            this.chk_auto.Checked = true;
-            this.chk_auto.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chk_auto.Location = new System.Drawing.Point(12, 35);
-            this.chk_auto.Name = "chk_auto";
-            this.chk_auto.Size = new System.Drawing.Size(148, 17);
-            this.chk_auto.TabIndex = 7;
-            this.chk_auto.Text = "Auto Extract on DragDrop";
-            this.chk_auto.UseVisualStyleBackColor = true;
+            this.CHK_AutoExtract.AutoSize = true;
+            this.CHK_AutoExtract.Checked = true;
+            this.CHK_AutoExtract.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.CHK_AutoExtract.Location = new System.Drawing.Point(12, 35);
+            this.CHK_AutoExtract.Name = "CHK_AutoExtract";
+            this.CHK_AutoExtract.Size = new System.Drawing.Size(148, 17);
+            this.CHK_AutoExtract.TabIndex = 7;
+            this.CHK_AutoExtract.Text = "Auto Extract on DragDrop";
+            this.CHK_AutoExtract.UseVisualStyleBackColor = true;
             // 
-            // delAfterD
+            // CHK_delAfterD
             // 
-            this.delAfterD.AutoSize = true;
-            this.delAfterD.Checked = true;
-            this.delAfterD.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.delAfterD.Location = new System.Drawing.Point(12, 52);
-            this.delAfterD.Name = "delAfterD";
-            this.delAfterD.Size = new System.Drawing.Size(164, 17);
-            this.delAfterD.TabIndex = 8;
-            this.delAfterD.Text = "Only Un/Decompressed Files";
-            this.delAfterD.UseVisualStyleBackColor = true;
+            this.CHK_delAfterD.AutoSize = true;
+            this.CHK_delAfterD.Checked = true;
+            this.CHK_delAfterD.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.CHK_delAfterD.Location = new System.Drawing.Point(12, 52);
+            this.CHK_delAfterD.Name = "CHK_delAfterD";
+            this.CHK_delAfterD.Size = new System.Drawing.Size(164, 17);
+            this.CHK_delAfterD.TabIndex = 8;
+            this.CHK_delAfterD.Text = "Only Un/Decompressed Files";
+            this.CHK_delAfterD.UseVisualStyleBackColor = true;
             // 
-            // cNoprint
+            // CHK_NoPrint
             // 
-            this.cNoprint.AutoSize = true;
-            this.cNoprint.Location = new System.Drawing.Point(214, 53);
-            this.cNoprint.Name = "cNoprint";
-            this.cNoprint.Size = new System.Drawing.Size(89, 17);
-            this.cNoprint.TabIndex = 9;
-            this.cNoprint.Text = "Don\'t printout";
-            this.cNoprint.UseVisualStyleBackColor = true;
+            this.CHK_NoPrint.AutoSize = true;
+            this.CHK_NoPrint.Location = new System.Drawing.Point(193, 52);
+            this.CHK_NoPrint.Name = "CHK_NoPrint";
+            this.CHK_NoPrint.Size = new System.Drawing.Size(89, 17);
+            this.CHK_NoPrint.TabIndex = 9;
+            this.CHK_NoPrint.Text = "Don\'t printout";
+            this.CHK_NoPrint.UseVisualStyleBackColor = true;
             // 
             // pBar1
             // 
@@ -147,18 +148,29 @@
             this.pBar1.Size = new System.Drawing.Size(382, 10);
             this.pBar1.TabIndex = 10;
             // 
+            // CHK_SkipDecompress
+            // 
+            this.CHK_SkipDecompress.AutoSize = true;
+            this.CHK_SkipDecompress.Location = new System.Drawing.Point(193, 35);
+            this.CHK_SkipDecompress.Name = "CHK_SkipDecompress";
+            this.CHK_SkipDecompress.Size = new System.Drawing.Size(113, 17);
+            this.CHK_SkipDecompress.TabIndex = 11;
+            this.CHK_SkipDecompress.Text = "Don\'t Decompress";
+            this.CHK_SkipDecompress.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(404, 262);
+            this.Controls.Add(this.CHK_SkipDecompress);
             this.Controls.Add(this.pBar1);
-            this.Controls.Add(this.cNoprint);
-            this.Controls.Add(this.delAfterD);
-            this.Controls.Add(this.chk_auto);
+            this.Controls.Add(this.CHK_NoPrint);
+            this.Controls.Add(this.CHK_delAfterD);
+            this.Controls.Add(this.CHK_AutoExtract);
             this.Controls.Add(this.button1);
-            this.Controls.Add(this.chk_binonly);
+            this.Controls.Add(this.CHK_ForceBIN);
             this.Controls.Add(this.B_Go);
             this.Controls.Add(this.RTB);
             this.Controls.Add(this.textBox1);
@@ -177,12 +189,13 @@
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.RichTextBox RTB;
         private System.Windows.Forms.Button B_Go;
-        private System.Windows.Forms.CheckBox chk_binonly;
+        private System.Windows.Forms.CheckBox CHK_ForceBIN;
         private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.CheckBox chk_auto;
-        private System.Windows.Forms.CheckBox delAfterD;
-        private System.Windows.Forms.CheckBox cNoprint;
+        private System.Windows.Forms.CheckBox CHK_AutoExtract;
+        private System.Windows.Forms.CheckBox CHK_delAfterD;
+        private System.Windows.Forms.CheckBox CHK_NoPrint;
         private System.Windows.Forms.ProgressBar pBar1;
+        private System.Windows.Forms.CheckBox CHK_SkipDecompress;
     }
 }
 
