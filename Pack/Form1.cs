@@ -22,11 +22,14 @@ namespace Pack
         {
             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
             string path = files[0]; // open first D&D
-            textBox1.Text = path;
 
-            if (CHK_AutoExtract.Checked)
+            if ((File.GetAttributes(path) & FileAttributes.Directory) == FileAttributes.Directory)
+                pack(files[0]);
+            else
             {
-                B_Go_Click(sender, (EventArgs)e);
+                textBox1.Text = path;
+                if (CHK_AutoExtract.Checked)
+                    B_Go_Click(sender, (EventArgs)e);
             }
 
         }
@@ -194,6 +197,100 @@ namespace Pack
             pBar1.Maximum = count;
             pBar1.Step = 1;
             pBar1.Value = 1;
+        }
+
+
+        private void pack(string path)
+        {
+            string[] filepaths = Directory.GetFiles(path, "*.*", SearchOption.TopDirectoryOnly);
+
+            MemoryStream newGARC = new MemoryStream();
+            MemoryStream GARCdata = new MemoryStream();
+            BinaryWriter gw = new BinaryWriter(newGARC);
+
+            // Write GARC header
+            gw.Write((uint)0x47415243); // Write "CRAG"         0x0
+            gw.Write((uint)0x1C);       // Header Length        0x4
+            gw.Write((ushort)0xFEFF);   // FEFF BOM             0x8
+            gw.Write((ushort)0x0400);   //                      0xA
+            gw.Write((uint)0x4);        //                      0xC
+            gw.Write((uint)0);          // Data Offset          0x10
+            gw.Write((uint)0);          // File Length          0x14
+            gw.Write((uint)0);          // FATB chunk last word 0x18-0x1B
+
+            // Write OTAF
+            gw.Write((uint)0x4641544F); // OTAF                     0x1C
+            gw.Write((uint)(0xC + 4 * filepaths.Length)); // Section Size 0x20
+            gw.Write((ushort)filepaths.Length);     // Count: n     0x24
+            gw.Write((ushort)0xFFFF);   // padding                  0x26-0x27
+
+            // write BTAF jump offsets
+            for (int i = 0; i < filepaths.Length; i++)
+                gw.Write((uint)i * 0x10);
+
+            // Start BTAF
+            gw.Write((uint)0x46415442); // BTAF
+            gw.Write((uint)(0xC + 0x10 * filepaths.Length)); // Chunk Size
+            gw.Write((uint)filepaths.Length);
+
+            uint offset = 0;
+            uint largest = 0;
+            for (int i = 0; i < filepaths.Length; i++)
+            {
+                FileInfo fi = new FileInfo(filepaths[i]);
+                using (FileStream fileStream = new FileStream(filepaths[i], FileMode.Open))
+                {
+                    gw.Write((uint)1);          // garc.btaf.entries[i].bits = br.ReadUInt32();
+                    gw.Write((uint)offset);     // Start/Begin Offset
+                    offset += (uint)((4 - fi.Length % 4) + fi.Length);
+                    gw.Write((uint)offset);     // End/Stop Offset
+                    gw.Write((uint)fi.Length);  // Length/Size
+
+                    if (fi.Length > largest) largest = (uint)fi.Length;
+
+                    // Write the data to the BMIF data section
+                    fileStream.CopyTo(GARCdata);    // then pad with FF's if not /4
+                    while (GARCdata.Length % 4 > 0) GARCdata.WriteByte(0xFF);
+                }
+            }
+            // Roundup Offset
+
+            gw.Write((uint)0x46494D42);
+            gw.Write((uint)0xC);
+            gw.Write((uint)offset);
+
+            uint dataOffset = (uint)newGARC.Length;
+            uint garcLength = (uint)(newGARC.Length + GARCdata.Length);
+            uint largestFile = (uint)largest;
+
+            gw.Seek(0x10, SeekOrigin.Begin);
+            gw.Write(dataOffset);
+            gw.Write(garcLength);
+            gw.Write(largestFile);
+
+            newGARC.Seek(0, SeekOrigin.End);
+
+            // Write in the data
+            GARCdata.Seek(0, SeekOrigin.Begin);
+            GARCdata.CopyTo(newGARC);
+
+
+            // New File
+            string packed = Directory.GetParent(path) + "\\" + new DirectoryInfo(path).Name + "_packed.garc";
+            try { 
+                File.Delete(packed); 
+                using (FileStream file = new FileStream(packed, FileMode.Create, FileAccess.ReadWrite))
+                {
+                    newGARC.WriteTo(file);
+                }
+
+                newGARC.Close();
+                GARCdata.Close();
+                gw.Close();
+
+                MessageBox.Show("Packed GARC!\n\n" + packed);
+            }
+            catch (Exception e) { MessageBox.Show("Packing failed...\n\n" + e); }
         }
     }
     // Class code based off of

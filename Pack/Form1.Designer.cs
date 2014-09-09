@@ -177,7 +177,7 @@
             this.Controls.Add(this.B_Open);
             this.MinimumSize = new System.Drawing.Size(420, 300);
             this.Name = "Form1";
-            this.Text = "GARC Unpacker";
+            this.Text = "GARC UnPacker";
             this.ResumeLayout(false);
             this.PerformLayout();
 

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual C# Express 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GARCUnpack", "Pack\GARCUnpack.csproj", "{5B60C8D1-5A23-4E3B-8F7E-E68B7FD5101A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GARC UnPacker", "Pack\GARC UnPacker.csproj", "{5B60C8D1-5A23-4E3B-8F7E-E68B7FD5101A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
